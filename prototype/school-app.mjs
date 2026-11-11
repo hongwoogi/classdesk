@@ -274,6 +274,8 @@ function moveWithKeyboard(event,id){
 function syncControls(){
   const settings=values();
   const legacy=isLegacy(),playground=state.theme==='playground';
+  const noBoundary=playground&&!settings.playgroundBoundary;
+  if($('playground-boundary-row'))$('playground-boundary-row').hidden=!playground;
   $('material-heading').closest('fieldset').hidden=legacy;
   document.querySelector('label[for="motion"] strong').textContent=legacy?'자연 풍경 움직임':playground?'학생들과 구역 움직임':'부드러운 그리기';
   document.querySelector('label[for="motion"] small').textContent=legacy?'끄면 파도와 구름을 멈춰요.':playground?'아이콘을 놓으면 학생들이 비켜나요.':'위치가 바뀌면 경계도 따라와요.';
@@ -287,10 +289,10 @@ function syncControls(){
     const output=document.querySelector(`output[for="${input.id}"]`);if(output)output.value=['texture','waviness','roundBoundary'].includes(input.name)?Math.round(Number(input.value)*100)+'%':input.name==='labelSize'?`${input.value}px`:input.value;
   }
   $('render-mode').value=settings.renderMode;
-  $('line-width').disabled=settings.renderMode==='fill'||playground;
-  $('render-mode').disabled=playground;
-  $('waviness').disabled=playground;
-  $('round-boundary').disabled=playground;
+  $('line-width').disabled=settings.renderMode==='fill'||noBoundary;
+  $('render-mode').disabled=noBoundary;
+  $('waviness').disabled=noBoundary;
+  $('round-boundary').disabled=noBoundary;
   $('material-heading').textContent=registry.find(item=>item.id===state.theme).material;
   const labels=legacy?['이름을 함께 쓸 묶기 거리','이름표 여백','선 두께']:state.theme==='classroom'?['책상 묶기 거리','모둠 여백','모둠 경계 두께']:playground?['아이콘 묶기 거리','학생 비켜서기 여백','선 두께']:['아이콘 묶기 거리','외곽선 여백',state.theme==='gym'?'테이프 두께':'선 두께'];
   for(const [index,id] of ['group-gap','border-padding','line-width'].entries())document.querySelector(`label[for="${id}"]`).textContent=labels[index];

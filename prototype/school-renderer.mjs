@@ -659,11 +659,12 @@ export function renderSchoolScene(ctx, { theme = 'chalkboard', width, height, sc
       stampPlaygroundCrowd(ctx, activeCrowd, material.sprites);
     }
     const labels = new Map(layoutGroupLabels(ctx, { scene, width, height, settings }).map(label => [label.id, label]));
+    const drawBoundary = selected !== 'playground' || settings.playgroundBoundary;
     for (const original of scene.groups ?? []) {
-      const group = selected !== 'playground' && original?.hull?.length && original.bounds
+      const group = drawBoundary && original?.hull?.length && original.bounds
         ? { ...original, hull: wavyHull(original, width, height, settings) } : original;
       if (!reveal || !group?.hull?.length || !group.bounds || !opacityOf(group)) continue;
-      if (selected !== 'playground') {
+      if (drawBoundary) {
         if (settings.renderMode !== 'outline') {
           traceHull(ctx, group.hull, 1);
           ctx.fillStyle = TAPE_COLORS[(group.colorIndex ?? 0) % TAPE_COLORS.length];
@@ -673,7 +674,8 @@ export function renderSchoolScene(ctx, { theme = 'chalkboard', width, height, sc
         }
         if (selected === 'gym' && settings.renderMode !== 'fill') tapeBoundary(ctx, group, settings, reveal);
         else if (selected === 'classroom') classroomGroup(ctx, group, width, height, settings, reveal);
-        else if (selected !== 'gym' && settings.renderMode !== 'fill') chalkBoundary(ctx, group, width, height, settings, '#e2e7cd', reveal);
+        else if (selected !== 'gym' && settings.renderMode !== 'fill')
+          chalkBoundary(ctx, group, width, height, settings, selected === 'playground' ? '#faf4df' : '#e2e7cd', reveal);
         ctx.globalAlpha = 1;
       }
       if (settings.showLabels && reveal >= .8) {

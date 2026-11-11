@@ -48,3 +48,13 @@ test('labelSize and roundBoundary slider are validated and survive independent t
   assert.equal(roundTripped.params[theme].roundBoundary,.65);
  }
 });
+
+test('playgroundBoundary option is off by default, validated as a boolean, and survives workspace storage',()=>{
+ assert.equal(DEFAULT_SETTINGS.playgroundBoundary,false);
+ assert.equal(sanitizeSettings({playgroundBoundary:true}).playgroundBoundary,true);
+ assert.equal(sanitizeSettings({playgroundBoundary:false}).playgroundBoundary,false);
+ assert.equal(sanitizeSettings({playgroundBoundary:'yes'}).playgroundBoundary,false);
+ const state=restoreWorkspace({theme:'playground',params:{playground:{playgroundBoundary:true}}});
+ assert.equal(state.params.playground.playgroundBoundary,true);
+ assert.equal(restoreWorkspace(JSON.stringify(state)).params.playground.playgroundBoundary,true);
+});

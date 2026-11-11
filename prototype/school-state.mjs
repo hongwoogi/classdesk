@@ -18,7 +18,7 @@ export function restoreWorkspace(raw, defaults = {}) {
       if (own(values,key)) params[theme][key] = safeNumber(values[key],min,max,params[theme][key]);
     }
     if (typeof values.roundBoundary === 'boolean') params[theme].roundBoundary = values.roundBoundary ? 1 : 0;
-    for (const key of ['showLabels','motion']) if (typeof values[key] === 'boolean') params[theme][key] = values[key];
+    for (const key of ['showLabels','motion','playgroundBoundary']) if (typeof values[key] === 'boolean') params[theme][key] = values[key];
     if (['outline','fill','both'].includes(values.renderMode)) params[theme].renderMode=values.renderMode;
     if(own(values,'groupCatalog'))params[theme].groupCatalog=sanitizeGroupCatalog(values.groupCatalog);
 

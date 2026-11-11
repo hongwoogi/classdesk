@@ -89,6 +89,15 @@ test('playground has ochre granular dirt, a running track, faded sport lines, st
     assert.ok(ctx.calls.some(call => call.op === 'fillText' && call.fillStyle === '#4b4e43'), 'group names remain readable');
     assert.equal(ctx.stackDepth(), 0);
   }
+  for (const renderMode of ['outline', 'fill', 'both']) {
+    const withBoundary = recordingContext();
+    draw(withBoundary, { theme: 'playground', settings: { playgroundBoundary: true, renderMode, waviness: .5, roundBoundary: .4 } });
+    const strokes = withBoundary.calls.filter(call => call.op === 'stroke' && call.strokeStyle === '#faf4df');
+    const fills = withBoundary.calls.filter(call => call.op === 'fill' && call.globalAlpha === .18);
+    assert.equal(strokes.length > 0, renderMode !== 'fill', renderMode + ': playgroundBoundary draws lime chalk outline');
+    assert.equal(fills.length, renderMode === 'outline' ? 0 : 1, renderMode + ': playgroundBoundary fills group area');
+    assert.equal(withBoundary.stackDepth(), 0);
+  }
 });
 
 test('playground draws a supplied live crowd at its current positions, behind the group names', async () => {

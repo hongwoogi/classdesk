@@ -16,7 +16,7 @@ test('settings retain the two original themes plus four school themes and exact 
   assert.deepEqual(api.DEFAULT_SETTINGS, {
     groupGap: 56, padding: 22, lineWidth: 3, texture: 0.45,
     showLabels: true, motion: true, waviness: 0.25, renderMode: 'outline',
-    labelSize: 16, roundBoundary: 0,
+    labelSize: 16, roundBoundary: 0, playgroundBoundary: false,
   });
   assert.equal(typeof api.sanitizeSettings, 'function');
   assert.deepEqual(api.sanitizeSettings(), api.DEFAULT_SETTINGS);
@@ -27,7 +27,7 @@ test('settings retain the two original themes plus four school themes and exact 
   }), {
     groupGap: 0, padding: 22, lineWidth: 12, texture: 0,
     showLabels: false, motion: true, waviness: 0.25, renderMode: 'outline',
-    labelSize: 16, roundBoundary: 0,
+    labelSize: 16, roundBoundary: 0, playgroundBoundary: false,
   });
   const names = JSON.parse('{"safe":"  우리 반  ","long":"12345678901234567890123456789012345678901234567890","__proto__":"bad","constructor":"bad","prototype":"bad","number":123}');
   const settings = api.sanitizeSettings({ groupNames: names });

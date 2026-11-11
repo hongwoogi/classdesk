@@ -5,7 +5,7 @@ export const THEME_IDS = Object.freeze(['beach', 'meadow', ...SCHOOL_THEME_IDS])
 export const DEFAULT_SETTINGS = Object.freeze({
   groupGap: 56, padding: 22, lineWidth: 3, texture: 0.45,
   showLabels: true, motion: true, waviness: 0.25, renderMode: 'outline',
-  labelSize: 16, roundBoundary: 0,
+  labelSize: 16, roundBoundary: 0, playgroundBoundary: false,
 });
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -40,7 +40,7 @@ export function sanitizeSettings(input) {
     }
   }
   if (typeof source.roundBoundary === 'boolean') result.roundBoundary = source.roundBoundary ? 1 : 0;
-  for (const key of ['showLabels', 'motion']) {
+  for (const key of ['showLabels', 'motion', 'playgroundBoundary']) {
     if (typeof source[key] === 'boolean') result[key] = source[key];
   }
   if (['outline','fill','both'].includes(source.renderMode)) result.renderMode=source.renderMode;
