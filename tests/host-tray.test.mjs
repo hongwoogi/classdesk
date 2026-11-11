@@ -15,9 +15,10 @@ test('the background wallpaper explicitly excludes Alt+Tab before its desktop at
  assert.match(wallpaper,/ShowInTaskbar = false/);
 });
 
-test('minimizing settings hides it to the tray instead of leaving an Alt+Tab candidate',()=>{
- assert.match(settings,/override void OnResize\(EventArgs e\)/);
- assert.match(settings,/WindowState == FormWindowState\.Minimized\) Hide\(\)/);
+test('minimizing settings keeps it in the taskbar instead of hiding/closing the window, and left-clicking tray opens settings',()=>{
+ assert.doesNotMatch(settings,/WindowState == FormWindowState\.Minimized\)\s*Hide\(\)/,'minimizing or Win+D must not hide settings from the taskbar');
  assert.match(settings,/ShowInTaskbar = true/,'only a deliberately open settings window remains a normal task');
+ assert.match(source,/e\.Button == MouseButtons\.Left\)\s*OpenSettings\(\)/,'left-click tray opens settings directly instead of popping exit menu under cursor');
  assert.match(source,/if \(settingsWin\.WindowState == FormWindowState\.Minimized\) settingsWin\.WindowState = FormWindowState\.Normal/);
+ assert.match(source,/settingsWin\.BringToFront\(\)/);
 });

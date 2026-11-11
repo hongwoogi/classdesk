@@ -16,15 +16,20 @@ let pendingNames=null;
 let catalog=sanitizeGroupCatalog();
 let displayScene=null,transition={active:false,progress:1};
 let groupStateSignature='';
-let crowd=null,crowdSettled=false,crowdAnimation=0,crowdLastTime=0;
+let crowd=null,crowdSettled=false,crowdAnimation=0,crowdLastTime=0,crowdObstacleSignature='';
 const viewport={width:innerWidth*(devicePixelRatio||1),height:innerHeight*(devicePixelRatio||1)};
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 const isMoving=()=>!paused&&settings.motion&&!reducedMotion.matches&&!document.hidden&&(!bridge||lastIcons!==null);
 function syncCrowd(instant=false){
   if(theme!=='playground')return;
-  if(!crowd||crowd.width!==viewport.width||crowd.height!==viewport.height){crowd=createPlaygroundCrowd(viewport.width,viewport.height);crowdSettled=false;}
+  if(!crowd||crowd.width!==viewport.width||crowd.height!==viewport.height){crowd=createPlaygroundCrowd(viewport.width,viewport.height);crowdSettled=false;crowdObstacleSignature='';}
   const visible=lastIcons?.vis===false||bridge&&!lastIcons?[]:scene.icons;
-  setPlaygroundObstacles(crowd,visible,{clearance:settings.padding,instant:instant||!crowdSettled||!isMoving()});
+  const nextInstant=instant||!crowdSettled||!isMoving();
+  const sig=`${viewport.width}:${viewport.height}:${settings.padding}:${nextInstant?1:0}:`+visible.map(i=>`${i.x},${i.y},${i.w},${i.h}`).join(';');
+  if(sig!==crowdObstacleSignature){
+    crowdObstacleSignature=sig;
+    setPlaygroundObstacles(crowd,visible,{clearance:settings.padding,instant:nextInstant});
+  }
   if(lastIcons||!bridge)crowdSettled=true;
 }
 function stopCrowdLoop(){if(crowdAnimation){cancelAnimationFrame(crowdAnimation);crowdAnimation=0;}crowdLastTime=0;}

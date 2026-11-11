@@ -576,6 +576,7 @@ function createStudentSpriteSheet(rasterWidth, rasterHeight) {
   const cellH = Math.ceil(PLAYGROUND_FIGURE_BOX.height * unit) + 2;
   const surface = createSurface(cellW * PLAYGROUND_FRAMES, cellH * PLAYGROUND_LOOKS);
   if (!surface) return null;
+  if ('imageSmoothingEnabled' in surface.context) surface.context.imageSmoothingEnabled = false;
   for (let look = 0; look < PLAYGROUND_LOOKS; look++) for (let frame = 0; frame < PLAYGROUND_FRAMES; frame++) {
     paintPlaygroundFigure(surface.context, frame * cellW + 1 + PLAYGROUND_FIGURE_BOX.left * unit,
       look * cellH + 1 + PLAYGROUND_FIGURE_BOX.top * unit, unit, look, frame);
@@ -587,11 +588,18 @@ function stampPlaygroundCrowd(ctx, crowd, sprites) {
   if (!crowd || !Array.isArray(crowd.students)) return;
   if (!sprites?.canvas) { paintPlaygroundCrowd(ctx, crowd); return; }
   const { canvas, cellW, cellH } = sprites, box = PLAYGROUND_FIGURE_BOX;
-  for (const s of playgroundPaintOrder(crowd)) {
-    const u = crowd.unit * s.size;
-    const sx = ((s.frame % PLAYGROUND_FRAMES) + PLAYGROUND_FRAMES) % PLAYGROUND_FRAMES * cellW + 1;
-    const sy = ((s.look % PLAYGROUND_LOOKS) + PLAYGROUND_LOOKS) % PLAYGROUND_LOOKS * cellH + 1;
-    ctx.drawImage(canvas, sx, sy, cellW - 2, cellH - 2, s.x - box.left * u, s.y - box.top * u, box.width * u, box.height * u);
+  const prevSmoothing = ctx.imageSmoothingEnabled;
+  if ('imageSmoothingEnabled' in ctx) ctx.imageSmoothingEnabled = false;
+  try {
+    for (const s of playgroundPaintOrder(crowd)) {
+      const u = crowd.unit * s.size;
+      const sx = ((s.frame % PLAYGROUND_FRAMES) + PLAYGROUND_FRAMES) % PLAYGROUND_FRAMES * cellW + 1;
+      const sy = ((s.look % PLAYGROUND_LOOKS) + PLAYGROUND_LOOKS) % PLAYGROUND_LOOKS * cellH + 1;
+      ctx.drawImage(canvas, sx, sy, cellW - 2, cellH - 2,
+        Math.round(s.x - box.left * u), Math.round(s.y - box.top * u), box.width * u, box.height * u);
+    }
+  } finally {
+    if ('imageSmoothingEnabled' in ctx) ctx.imageSmoothingEnabled = prevSmoothing;
   }
 }
 

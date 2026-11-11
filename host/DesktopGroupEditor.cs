@@ -97,13 +97,14 @@ sealed class DesktopGroupEditor : IDisposable
         {
         try
         {
+            bool needPlace = dirty || !overlay.Visible || overlay.Width != screen.Width || overlay.Height != screen.Height;
             if (dirty)
             {
                 overlay.SetButtons(labels, glyphs, screen);
                 dirty = false;
             }
             if (overlay.Controls.Count == 0) { HideAffordances(); return; }
-            if (!overlay.Place(screen)) { DropOverlay(); return; }
+            if (needPlace && !overlay.Place(screen)) { DropOverlay(); return; }
             if (!overlay.Visible) overlay.Show();
         }
         catch (Exception ex) { Log.Write("바탕화면 이름 편집 표시 중단: " + ex.Message); DropOverlay(); }

@@ -349,7 +349,7 @@ class HostContext : ApplicationContext
             new MenuItem("-"),
             exitItem = new MenuItem(I18n.T("trayExit"), delegate { Exit(); }),
         });
-        tray.MouseUp += delegate(object s, MouseEventArgs e) { if (e.Button == MouseButtons.Left) ShowMenu(); };
+        tray.MouseUp += delegate(object s, MouseEventArgs e) { if (e.Button == MouseButtons.Left) OpenSettings(); };
         tray.DoubleClick += delegate { OpenSettings(); };   // 双击托盘图标：直接打开设置
         tray.Visible = true;
         ShowWelcomeOnce(hotkeyOk);
@@ -388,6 +388,7 @@ class HostContext : ApplicationContext
         // 但原生窗口仍被隐藏；Activate / 再次 Show 不会修复，必须显式还原。
         // SW_RESTORE 同时处理隐藏和最小化，SW_SHOW 不会展开已最小化的窗口。
         Native.ShowWindow(settingsWin.Handle, Native.SW_RESTORE);
+        settingsWin.BringToFront();
         settingsWin.Activate();
     }
 
@@ -937,12 +938,6 @@ class SettingsForm : Form
         Controls.Add(web);
     }
 
-    protected override void OnResize(EventArgs e)
-    {
-        base.OnResize(e);
-        if (WindowState == FormWindowState.Minimized) Hide();
-    }
-
     // 标题栏（系统原生那条）刷成和页面底色一样：settings.html 跟随系统深浅色（浅 #ffffff / 深 #171717），
     // 标题栏也按系统深浅色取同一个颜色。DWMWA_CAPTION_COLOR / 深色模式要 Win11，旧系统调用失败就保持系统原样
     void ThemeTitleBar()
@@ -982,6 +977,11 @@ class SettingsForm : Form
             {
                 try { host.OnSettingsMessage(a.TryGetWebMessageAsString()); }
                 catch (Exception ex) { Log.Write("处理设置消息失败：" + ex.Message); }
+            };
+            core.ProcessFailed += delegate
+            {
+                try { if (!IsDisposed) core.Reload(); }
+                catch { }
             };
             string settingsUrl = "https://app.local/settings.html?v=" + Uri.EscapeDataString(Application.ProductVersion);
             Log.Write("设置页面：" + settingsUrl);

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 let api = {};
 try { api = await import('../prototype/playground-crowd.mjs'); } catch (e) { if (e.code !== 'ERR_MODULE_NOT_FOUND') throw e; }
 
-const OLD_FIGURE_HEIGHT = 12.9; // former tiny pupil height in 1440 × 900 design pixels
+const PREVIOUS_FIGURE_HEIGHT = 35.2; // previous 3x pupil height before the 300% pixel-art upgrade
 const icon = (id, x, y, w = 64, h = 76) => ({ id, x, y, w, h });
 const center = [icon('center', 680, 400)];
 const intersects = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
@@ -17,16 +17,16 @@ function run(crowd, seconds, each = () => {}) {
   for (let i = 0; i < Math.round(seconds * 30); i++) { api.stepPlaygroundCrowd(crowd, 1 / 30); each(i); }
 }
 
-test('students are about three times larger, deterministic, varied and fully on screen', () => {
+test('students are 300% larger pixel-art characters in a clean uncrowded class size, deterministic, varied and fully on screen', () => {
   assert.equal(typeof api.createPlaygroundCrowd, 'function');
   const crowd = api.createPlaygroundCrowd(1440, 900);
-  assert.ok(crowd.students.length >= 150 && crowd.students.length <= 420, 'a readable crowd, not thousands of specks');
+  assert.ok(crowd.students.length >= 48 && crowd.students.length <= 96, 'clean uncrowded playground class size, not hundreds of tiny specks');
   assert.equal(JSON.stringify(api.createPlaygroundCrowd(1440, 900)), JSON.stringify(crowd));
   assert.equal(new Set(crowd.students.map(s => s.id)).size, crowd.students.length);
   assert.ok(new Set(crowd.students.map(s => s.look)).size >= 12);
   const heights = crowd.students.map(s => bounds(crowd, s).h);
   const average = heights.reduce((a, b) => a + b, 0) / heights.length;
-  assert.ok(average >= OLD_FIGURE_HEIGHT * .91 * 2.7 && average <= OLD_FIGURE_HEIGHT * .91 * 3.6, `average figure ${average}`);
+  assert.ok(average >= PREVIOUS_FIGURE_HEIGHT * 2.5 && average <= PREVIOUS_FIGURE_HEIGHT * 3.4, `average figure ${average}`);
   for (const student of crowd.students) {
     const b = bounds(crowd, student);
     assert.ok(b.x >= 0 && b.y >= 0 && b.x + b.w <= 1440 && b.y + b.h <= 900, 'whole figure inside the viewport');

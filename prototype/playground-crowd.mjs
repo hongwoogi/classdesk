@@ -3,19 +3,22 @@
 // desktop icons. No DOM, clock, filenames or raster caches live here; callers own
 // animation frames and drawing surfaces. All positions are scene (physical) pixels.
 const DESIGN_W = 1440, DESIGN_H = 900;
-export const PLAYGROUND_STUDENT_COUNT = 300;
+export const PLAYGROUND_STUDENT_COUNT = 64;
 export const PLAYGROUND_LOOKS = 24;
 /** 0 standing, 1-6 stride cycle, 7 waving. */
 export const PLAYGROUND_FRAMES = 8;
-/** Figure units per design pixel: three times the former tiny pupils. */
-export const PLAYGROUND_FIGURE_SCALE = 3;
+/** Figure units per design pixel: 300% larger pixel-art students. */
+export const PLAYGROUND_FIGURE_SCALE = 9;
 // Painted extents in figure units around the feet anchor, including a half-unit fringe.
-const HALF_W = 4.2, TOP = 11.9, BOTTOM = 1.4;
+const HALF_W = 4.2, TOP = 10.6, BOTTOM = 1.1;
 const MAX_SIZE = 1.05, MIN_SIZE = .85;
-const SHIRTS = ['#c57c72', '#648f88', '#738ca6', '#c7ab68', '#b88b83', '#879d90'];
-const SKINS = ['#e3bfa3', '#bf9377', '#997058', '#d0aa8c'];
-const HAIR = ['#34332f', '#44382f', '#343b3b'];
-const PANTS = ['#56616a', '#4f5a52', '#5d5767'];
+const SHIRTS = ['#e76f51', '#4ea8de', '#f4a261', '#52b788', '#9b72cf', '#e56b6f', '#3a6ea5', '#e9c46a'];
+const ACCENTS = ['#f4d35e', '#ffffff', '#ff9ebb', '#7bdff2', '#ffe66d', '#a8dadc'];
+const SKINS = ['#ffe3c8', '#f9cfa7', '#eec096', '#ffead6'];
+const HAIR = ['#2f2421', '#5c3c28', '#7f4f24', '#25262e', '#6f4518', '#3d2b24'];
+const HAIR_LIGHT = ['#523f3a', '#84593d', '#a66b38', '#454754', '#96622b', '#5e4339'];
+const PANTS = ['#354f6b', '#4a5d4e', '#5a4638', '#48405c'];
+const SHOES = ['#d64545', '#3b6ea5', '#4f5d75', '#e07a5f'];
 const TAU = Math.PI * 2;
 const extent = n => typeof n === 'number' && Number.isFinite(n) && n > 0 ? Math.min(32768, n) : 0;
 const finiteRect = r => r && ['x', 'y', 'w', 'h'].every(k => typeof r[k] === 'number' && Number.isFinite(r[k])) && r.w >= 0 && r.h >= 0;
@@ -35,8 +38,19 @@ function random(crowd) {
 
 export function playgroundLook(look) {
   const index = ((Math.floor(look) % PLAYGROUND_LOOKS) + PLAYGROUND_LOOKS) % PLAYGROUND_LOOKS;
-  return { shirt: SHIRTS[index % SHIRTS.length], skin: SKINS[Math.floor(index / SHIRTS.length) % SKINS.length],
-    hair: HAIR[(index * 7 + 1) % HAIR.length], pants: PANTS[(index * 5) % PANTS.length], ponytail: index % 4 === 1 };
+  const hairIdx = (index * 7 + 1) % HAIR.length;
+  return {
+    shirt: SHIRTS[index % SHIRTS.length],
+    accent: ACCENTS[(index * 3 + 1) % ACCENTS.length],
+    skin: SKINS[Math.floor(index / SHIRTS.length) % SKINS.length],
+    hair: HAIR[hairIdx],
+    hairLight: HAIR_LIGHT[hairIdx],
+    pants: PANTS[(index * 5) % PANTS.length],
+    shoe: SHOES[(index * 3) % SHOES.length],
+    hairStyle: index % 6,
+    outfitStyle: Math.floor(index / 2) % 4,
+    ponytail: index % 6 === 1,
+  };
 }
 
 /** Feet-anchored bounding box of the whole painted figure. */
@@ -162,7 +176,7 @@ export function createPlaygroundCrowd(width = DESIGN_W, height = DESIGN_H) {
     const roll = noise(n + 7);
     students.push({ id: `pupil-${index}`, index, homeX: x, homeY: y, x, y,
       size: MIN_SIZE + noise(n + 3) * (MAX_SIZE - MIN_SIZE), look: Math.floor(noise(n + 4) * PLAYGROUND_LOOKS),
-      speed: (14 + noise(n + 5) * 14) * screenScale(width, height), phase: noise(n + 6),
+      speed: (18 + noise(n + 5) * 14) * screenScale(width, height), phase: noise(n + 6),
       // A lively still frame: most stand, some are mid-stride, a few wave.
       frame: roll < .14 ? 7 : roll < .45 ? 1 + Math.floor(noise(n + 8) * 6) : 0,
       state: 'wait', wait: noise(n + 9) * 3, tx: x, ty: y, wave: roll < .14, hidden: false });
@@ -232,7 +246,7 @@ export function stepPlaygroundCrowd(crowd, dt) {
       if (s.wait <= 0) pickTarget(crowd, s);
       if (s.state !== 'walk') continue;
     }
-    const speed = s.speed * (s.state === 'yield' ? 2.4 : 1);
+    const speed = s.speed * (s.state === 'yield' ? 3.2 : 1);
     const dx = s.tx - s.x, dy = s.ty - s.y, distance = Math.hypot(dx, dy), travel = Math.min(distance, speed * dt);
     if (distance > 1e-9) { s.x += dx / distance * travel; s.y += dy / distance * travel; }
     s.phase = (s.phase + travel / stride) % 1;
@@ -249,26 +263,171 @@ export function stepPlaygroundCrowd(crowd, dt) {
 
 // ---------------------------------------------------------------- painting
 
-/** Vector figure, feet at (x, y), `u` pixels per figure unit. Shared by sprites and fallback. */
+/** Pixel-art chibi student, feet at (x, y), `u` pixels per figure unit. Shared by sprites and fallback. */
 export function paintPlaygroundFigure(ctx, x, y, u, look, frame) {
-  const colors = playgroundLook(look);
-  const walking = frame >= 1 && frame <= 6, t = walking ? (frame - 1) / 6 * TAU : 0;
-  const swing = walking ? Math.sin(t) : 0, bob = walking ? -Math.abs(Math.cos(t)) * .3 : 0;
-  const liftL = Math.max(0, swing) * .5, liftR = Math.max(0, -swing) * .5;
-  const rect = (rx, ry, w, h) => ctx.fillRect(x + rx * u, y + ry * u, w * u, h * u);
-  const oval = (ox, oy, rx, ry) => { ctx.beginPath(); ctx.ellipse(x + ox * u, y + oy * u, rx * u, ry * u, 0, 0, TAU); ctx.fill(); };
-  ctx.fillStyle = 'rgba(112,86,52,0.3)'; oval(.3, .05, 3.3, .8);
-  ctx.fillStyle = colors.pants; rect(-1.65 + swing * .6, -3.1, 1.3, 3 - liftL); rect(.35 - swing * .6, -3.1, 1.3, 3 - liftR);
-  ctx.fillStyle = '#3e4445'; rect(-2 + swing * .6, -.55 - liftL, 1.85, .9); rect(.2 - swing * .6, -.55 - liftR, 1.85, .9);
-  ctx.fillStyle = colors.skin;
-  rect(-3.6, (frame === 7 ? -8.4 : -5.7 + swing * .7) + bob, 1.2, 3); rect(2.4, -5.7 - swing * .7 + bob, 1.2, 3);
-  ctx.fillStyle = colors.shirt; rect(-3.3, -6.85 + bob, 1.5, 1.8); rect(1.8, -6.85 + bob, 1.5, 1.8);
-  ctx.beginPath();
-  ctx.moveTo(x - 1.8 * u, y + (-7 + bob) * u); ctx.lineTo(x + 1.8 * u, y + (-7 + bob) * u);
-  ctx.lineTo(x + 2.1 * u, y + (-2.4 + bob) * u); ctx.lineTo(x - 2.1 * u, y + (-2.4 + bob) * u); ctx.fill();
-  ctx.fillStyle = colors.skin; oval(0, -8.5 + bob, 2.12, 2.35);
-  ctx.fillStyle = colors.hair; oval(0, -9.75 + bob, 2.18, 1.2);
-  if (colors.ponytail) oval(2, -9.4 + bob, .8, 1.1);
+  const c = playgroundLook(look);
+  const p = u * 0.39;
+  const stride = frame >= 1 && frame <= 6 ? [0, 1, 1, 0, -1, -1, 0][frame] : 0;
+  const liftL = frame === 1 || frame === 2 ? 1 : 0;
+  const liftR = frame === 4 || frame === 5 ? 1 : 0;
+  const bob = liftL || liftR ? -0.5 : 0;
+  const px = (gx, gy, gw, gh, move = true) => ctx.fillRect(x + gx * p, y + (gy + (move ? bob : 0)) * p, gw * p, gh * p);
+
+  // Pixel ground shadow
+  ctx.fillStyle = 'rgba(92,68,38,0.24)';
+  px(-5, -0.4, 10, 1.1, false);
+  px(-6, -0.1, 12, 0.55, false);
+
+  // Legs, white socks & sneakers (with dark pixel outline)
+  const lx = -3.5 + stride * 0.45, rx = 0.5 - stride * 0.45;
+  ctx.fillStyle = '#2b211d';
+  px(lx - 0.5, -5.2 - liftL, 3.8, 5.2, false);
+  px(rx - 0.5, -5.2 - liftR, 3.8, 5.2, false);
+  ctx.fillStyle = c.pants;
+  px(lx, -5 - liftL, 2.8, 2.4, false);
+  px(rx, -5 - liftR, 2.8, 2.4, false);
+  ctx.fillStyle = '#f8f5ec';
+  px(lx, -2.6 - liftL, 2.8, 1.2, false);
+  px(rx, -2.6 - liftR, 2.8, 1.2, false);
+  ctx.fillStyle = c.shoe;
+  px(lx - 0.2, -1.4 - liftL, 3.1, 1.1, false);
+  px(rx - 0.2, -1.4 - liftR, 3.1, 1.1, false);
+  ctx.fillStyle = '#f8f5ec';
+  px(lx - 0.2, -0.8 - liftL, 1.1, 0.5, false);
+  px(rx + 1.8, -0.8 - liftR, 1.1, 0.5, false);
+
+  // Swinging pixel arms (or raised waving right arm on frame 7)
+  const armL = -stride * 0.8, armR = frame === 7 ? -4.2 : stride * 0.8;
+  ctx.fillStyle = '#2b211d';
+  px(-6.8, -10.6 + armL, 2.6, 5.2);
+  px(4.2, -10.6 + armR, 2.6, 5.2);
+  ctx.fillStyle = c.shirt;
+  px(-6.3, -10.1 + armL, 1.8, 2.9);
+  px(4.5, -10.1 + armR, 1.8, 2.9);
+  ctx.fillStyle = c.skin;
+  px(-6.3, -7.2 + armL, 1.8, 1.8);
+  px(4.5, (frame === 7 ? -11.6 : -7.2) + armR, 1.8, 1.8);
+
+  // Torso outline & school uniform / tracksuit / cardigan
+  ctx.fillStyle = '#2b211d';
+  px(-5, -11.4, 10, 6.8);
+  ctx.fillStyle = c.shirt;
+  px(-4.2, -10.6, 8.4, 5.4);
+  if (c.outfitStyle === 0) {
+    // Sailor / collar uniform + tie
+    ctx.fillStyle = '#f9f6ee';
+    px(-3, -10.6, 6, 1.1);
+    ctx.fillStyle = c.accent;
+    px(-0.6, -9.5, 1.2, 2.4);
+  } else if (c.outfitStyle === 1) {
+    // Cardigan / vest over white shirt
+    ctx.fillStyle = '#f9f6ee';
+    px(-1.2, -10.6, 2.4, 3.4);
+    ctx.fillStyle = c.accent;
+    px(-0.5, -7.1, 1, 1);
+  } else if (c.outfitStyle === 2) {
+    // Sporty tracksuit chest stripe
+    ctx.fillStyle = '#f9f6ee';
+    px(-4.2, -8.4, 8.4, 1.1);
+    ctx.fillStyle = c.accent;
+    px(-2, -10.6, 4, 0.9);
+  } else {
+    // School backpack straps + collar
+    ctx.fillStyle = '#f9f6ee';
+    px(-2.2, -10.6, 4.4, 1);
+    ctx.fillStyle = c.accent;
+    px(-3.8, -10.4, 1.1, 4.6);
+    px(2.7, -10.4, 1.1, 4.6);
+  }
+
+  // Cute wide chibi head outline & hair back details
+  ctx.fillStyle = '#2b211d';
+  if (c.hairStyle === 0) {
+    // Twin pigtails
+    px(-8, -18.5, 2.4, 4.6);
+    px(5.6, -18.5, 2.4, 4.6);
+  } else if (c.hairStyle === 1) {
+    // Side ponytail
+    px(5.6, -20.2, 2.4, 4.6);
+  }
+  px(-5.2, -21.8, 10.4, 1);
+  px(-6.2, -20.8, 12.4, 8.6);
+  px(-5.2, -12.2, 10.4, 1);
+
+  if (c.hairStyle === 0) {
+    ctx.fillStyle = c.hair;
+    px(-7.4, -18, 1.6, 3.6);
+    px(5.8, -18, 1.6, 3.6);
+    ctx.fillStyle = c.accent;
+    px(-6.8, -19, 1.6, 1.2);
+    px(5.2, -19, 1.6, 1.2);
+  } else if (c.hairStyle === 1) {
+    ctx.fillStyle = c.hair;
+    px(5.8, -19.6, 1.6, 3.6);
+    ctx.fillStyle = c.accent;
+    px(5, -19.6, 1.2, 1.6);
+  }
+
+  // Face skin & ears
+  ctx.fillStyle = c.skin;
+  px(-6.4, -16.8, 1.2, 2);
+  px(5.2, -16.8, 1.2, 2);
+  px(-5.2, -19.6, 10.4, 7.2);
+  px(-4.2, -12.4, 8.4, 0.9);
+
+  // Rosy pixel blush cheeks, sparkling dark eyes & smile
+  ctx.fillStyle = '#f28482';
+  px(-4.8, -14.5, 1.9, 1.1);
+  px(2.9, -14.5, 1.9, 1.1);
+  ctx.fillStyle = '#241915';
+  px(-3.8, -16.8, 1.8, 2.1);
+  px(2, -16.8, 1.8, 2.1);
+  ctx.fillStyle = '#ffffff';
+  px(-3.8, -16.8, 0.9, 0.9);
+  px(2, -16.8, 0.9, 0.9);
+  ctx.fillStyle = '#c97b63';
+  px(-0.9, -13.6, 1.8, 0.8);
+
+  // Hair bangs, side locks, shine & hats/accessories
+  ctx.fillStyle = c.hair;
+  px(-5.4, -21, 10.8, 2.6);
+  px(-5.6, -18.8, 1.4, 3.2);
+  px(4.2, -18.8, 1.4, 3.2);
+  // Parted fringe notch
+  ctx.fillStyle = c.skin;
+  px(c.hairStyle % 2 ? -1.4 : 0.4, -18.8, 1.1, 0.8);
+  // Hair shine highlight
+  ctx.fillStyle = c.hairLight;
+  px(-3.2, -20.4, 3.2, 0.9);
+
+  if (c.hairStyle === 2) {
+    // Bob cut side locks + cute hairclip
+    ctx.fillStyle = c.hair;
+    px(-5.6, -18.8, 1.5, 5.2);
+    px(4.1, -18.8, 1.5, 5.2);
+    ctx.fillStyle = c.accent;
+    px(2.6, -18.8, 1.8, 0.9);
+  } else if (c.hairStyle === 3) {
+    // Sporty playground cap
+    ctx.fillStyle = c.accent;
+    px(-5.4, -21.6, 10.8, 2.4);
+    px(0.5, -19.5, 6.2, 1);
+    ctx.fillStyle = '#ffffff';
+    px(-1.2, -21.1, 2.2, 1);
+  } else if (c.hairStyle === 4) {
+    // Cute sprout / ahoge hair tuft
+    ctx.fillStyle = '#2b211d';
+    px(-1.2, -23.4, 2.8, 1.8);
+    ctx.fillStyle = c.hair;
+    px(-0.7, -22.9, 1.8, 1.4);
+  } else if (c.hairStyle === 5) {
+    // Cute school beret
+    ctx.fillStyle = '#2b211d';
+    px(-5.4, -22.8, 10.8, 2.2);
+    ctx.fillStyle = c.accent;
+    px(-4.8, -22.3, 9.6, 1.7);
+    px(-0.6, -23.3, 1.4, 0.8);
+  }
 }
 
 /** Painter's order: students further down the field overlap those behind them. */

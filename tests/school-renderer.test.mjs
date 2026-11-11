@@ -84,7 +84,8 @@ test('playground has ochre granular dirt, a running track, faded sport lines, st
     assert.ok(!ctx.calls.some(call => call.op === 'stroke' && call.strokeStyle === '#faf4df'), renderMode + ': no chalk boundary');
     assert.ok(!ctx.calls.some(call => call.op === 'fill' && call.globalAlpha === .18), renderMode + ': no tinted group area');
     assert.ok(!ctx.calls.some(call => call.op === 'clip' && call !== ctx.calls.find(c => c.op === 'clip')), 'no clearing clip per group');
-    assert.ok(ctx.calls.filter(call => call.op === 'ellipse').length > 150, 'student heads, hair and shadows are painted');
+    assert.ok(ctx.calls.filter(call => call.op === 'fillRect').length > 900, 'pixel-art student sprites and details are painted');
+    assert.ok(ctx.calls.some(call => call.op === 'fillRect' && call.fillStyle === '#f28482'), 'cute pixel-art cheek blush is painted');
     assert.ok(ctx.calls.some(call => call.op === 'fillText' && call.fillStyle === '#4b4e43'), 'group names remain readable');
     assert.equal(ctx.stackDepth(), 0);
   }
@@ -94,12 +95,12 @@ test('playground draws a supplied live crowd at its current positions, behind th
   const { createPlaygroundCrowd, stepPlaygroundCrowd, setPlaygroundObstacles } = await import('../prototype/playground-crowd.mjs');
   const crowd = createPlaygroundCrowd(width, height);
   setPlaygroundObstacles(crowd, scene.icons, { clearance: 22, instant: true });
-  const heads = ctx => ctx.calls.filter(call => call.op === 'ellipse' && call.fillStyle === '#e3bfa3' || call.op === 'ellipse' && ['#bf9377', '#997058', '#d0aa8c'].includes(call.fillStyle)).map(call => call.args.slice(0, 2).join(','));
+  const cheeks = ctx => ctx.calls.filter(call => call.op === 'fillRect' && call.fillStyle === '#f28482').map(call => call.args.slice(0, 2).join(','));
   const before = recordingContext(); draw(before, { theme: 'playground', crowd });
   for (let i = 0; i < 60; i++) stepPlaygroundCrowd(crowd, 1 / 30);
   const after = recordingContext(); draw(after, { theme: 'playground', crowd });
-  assert.notDeepEqual(heads(after), heads(before), 'walking students are redrawn where they are now');
-  const lastFigure = after.calls.findLastIndex(call => call.op === 'ellipse');
+  assert.notDeepEqual(cheeks(after), cheeks(before), 'walking students are redrawn where they are now');
+  const lastFigure = after.calls.findLastIndex(call => call.op === 'fillRect' && call.fillStyle === '#f28482');
   const label = after.calls.findIndex(call => call.op === 'fillText');
   assert.ok(label > lastFigure, 'names are painted over walking students');
   const still = recordingContext(); draw(still, { theme: 'playground' });
