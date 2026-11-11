@@ -1,0 +1,16 @@
+{
+  "name": "classdesk",
+  "version": "0.3.0",
+  "private": true,
+  "description": "교실데스크: 선생님을 위한 로컬 적응형 바탕화면",
+  "type": "module",
+  "license": "GPL-3.0-only",
+  "scripts": {
+    "start": "node prototype/serve.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser-qa.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0"
+  }
+}

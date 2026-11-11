@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>교실데스크 · 선생님의 바탕화면</title>
+  <link rel="icon" href="assets/classdesk.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/MaterialSymbolsRounded.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="school-ui.css">
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="settings.html" aria-label="교실데스크 홈"><img src="assets/classdesk.svg" width="38" height="38" alt=""><span>교실데스크<small>선생님의 바탕화면</small></span></a>
+    <nav class="header-nav" aria-label="현재 화면"><span class="nav-active">바탕화면 꾸미기</span></nav>
+    <div class="header-actions"><span class="mode-badge" id="mode-badge"><i></i>브라우저 미리보기</span><button class="icon-button" id="help-button" aria-label="사용 안내"><span class="symbol" aria-hidden="true">help</span></button></div>
+  </header>
+  <main class="workspace">
+    <aside class="theme-panel" aria-labelledby="theme-heading">
+      <div class="panel-heading"><span class="section-kicker">01 / 장면</span><h2 id="theme-heading">어떤 공간에서<br>시작할까요?</h2><p>익숙한 학교의 풍경을 바탕화면에.</p></div>
+      <div id="theme-list" class="theme-list" role="group" aria-label="기존 풍경과 학교 테마 선택"></div>
+      <div class="local-note"><span class="symbol" aria-hidden="true">desktop_windows</span><p><strong>내 기기에만 보관해요</strong><br>회원가입도, 파일 업로드도 없어요.</p></div>
+      <a class="source-credit" href="https://github.com/BLEZZ0102/Deskland" target="_blank" rel="noopener noreferrer">Deskland 기반의 독립 학교용 버전 <span aria-hidden="true">↗</span></a>
+    </aside>
+    <section class="canvas-panel" aria-labelledby="workspace-heading">
+      <div class="workspace-heading"><div><div class="breadcrumb">나의 공간 <span>/</span> 바탕화면 꾸미기</div><h1 id="workspace-heading">조금 더, 우리 교실답게.</h1><p id="theme-description">아이콘이 모인 곳에 분필로 부드러운 경계를 그려요.</p></div><span class="edition-label">기존 2종 + 학교 4종</span></div>
+      <div class="preview-toolbar"><div class="layout-options" role="group" aria-label="미리보기 아이콘 배치"><button data-layout="work" aria-pressed="true">업무별 정리</button><button data-layout="groups" aria-pressed="false">모둠 배치</button><button data-layout="scattered" aria-pressed="false">자유 배치</button></div><div class="preview-actions"><button class="icon-button" id="undo-button" aria-label="아이콘 이동 되돌리기" disabled><span class="symbol" aria-hidden="true">undo</span></button><button class="icon-button" id="fullscreen-button" aria-label="미리보기 전체 화면"><span class="symbol" aria-hidden="true">fullscreen</span></button></div></div>
+      <div class="preview-shell" id="preview-shell">
+        <div class="preview-viewport" id="preview-viewport"><div class="scene-stage" id="scene-stage"><canvas id="scene-canvas" width="1440" height="900" aria-label="학교 테마 바탕화면 미리보기"></canvas><div id="desktop-icons" class="desktop-icons" aria-label="미리보기 아이콘. 방향키로 이동할 수 있어요."></div><div id="group-edit-layer" class="group-edit-layer" aria-label="바탕화면 모둠 이름 바로 수정"></div></div></div>
+        <div class="demo-taskbar" aria-hidden="true"><span class="taskbar-logo"><i></i><i></i><i></i><i></i></span><span class="taskbar-search">선생님의 하루를 담는 공간</span><div class="taskbar-apps"><span class="file-app"></span><span class="browser-app"></span><span class="note-app"></span></div><div class="taskbar-clock">내 기기에 저장<br><span>교실데스크</span></div></div>
+      </div>
+      <div class="preview-caption"><p><span class="symbol" aria-hidden="true">info</span><span id="preview-notice">예시 아이콘을 끌어보세요. 실제 바탕화면 파일은 변경되지 않아요.</span></p><span class="scene-count" id="scene-count">구역을 준비하고 있어요</span></div>
+      <div class="bottom-toolbar"><div class="add-tools"><button class="secondary-button" id="add-icon-button"><span class="symbol" aria-hidden="true">add</span>예시 자료 추가</button><span id="selection-hint">아이콘 선택 → 방향키로도 이동</span></div><button class="primary-button" id="download-button"><span class="symbol" aria-hidden="true">download</span>배경 이미지 저장</button></div>
+      <div class="native-banner" id="native-banner"><span class="symbol" aria-hidden="true">school</span><p><strong>실제 바탕화면에도 적용하고 싶다면?</strong><span>Windows용 교실데스크를 실행하면 아이콘 위치를 읽어 자동으로 그려요.</span></p><button class="text-button" id="windows-help-button">적용 방법 <span aria-hidden="true">→</span></button></div>
+    </section>
+    <aside class="settings-panel" aria-labelledby="settings-heading">
+      <div class="settings-top"><div><span class="section-kicker">02 / 조절</span><h2 id="settings-heading">나에게 맞게</h2></div><button class="icon-button" id="reset-button" aria-label="현재 테마 기본값으로 되돌리기"><span class="symbol" aria-hidden="true">restart_alt</span></button></div>
+      <form id="settings-form">
+        <fieldset><legend>구역을 만드는 방법</legend><div class="range-field"><div><label for="group-gap">아이콘 묶기 거리</label><output for="group-gap" id="group-gap-value">56</output></div><input id="group-gap" name="groupGap" type="range" min="0" max="160" step="2" value="56"><p>가까운 아이콘끼리 한 구역으로 묶어요.</p></div><div class="range-field"><div><label for="border-padding">외곽선 여백</label><output for="border-padding" id="border-padding-value">22</output></div><input id="border-padding" name="padding" type="range" min="8" max="64" step="1" value="22"><p>아이콘과 경계선 사이를 여유롭게.</p></div><div class="range-field"><div><label for="label-size">모둠 이름 크기</label><output for="label-size" id="label-size-value">16px</output></div><input id="label-size" name="labelSize" type="range" min="11" max="28" step="1" value="16"><p>구역 이름 글자 크기를 조절해요.</p></div></fieldset>
+        <fieldset><legend id="material-heading">분필의 느낌</legend><div class="range-field"><div><label for="line-width">선 두께</label><output for="line-width" id="line-width-value">3</output></div><input id="line-width" name="lineWidth" type="range" min="1" max="12" step="1" value="3"></div><div class="appearance-field"><label for="render-mode">구역 표현</label><select id="render-mode" name="renderMode"><option value="outline">선만 그리기</option><option value="fill">안쪽 색칠하기</option><option value="both">선과 색칠 함께</option></select></div><div class="range-field"><div><label for="round-boundary">모서리 둥글기</label><output for="round-boundary" id="round-boundary-value">0%</output></div><input id="round-boundary" name="roundBoundary" type="range" min="0" max="1" step="0.05" value="0"><p>사각형 경계에서 둥근 원 모양까지 부드럽게 조절해요.</p></div><div class="range-field"><div><label for="waviness">테두리 구불거림</label><output for="waviness">25%</output></div><input id="waviness" name="waviness" type="range" min="0" max="1" step="0.05" value="0.25"><p>낮게 하면 곧게, 높게 하면 더 자연스럽게 휘어요.</p></div><div class="range-field"><div><label for="texture">배경 질감</label><output for="texture" id="texture-value">45%</output></div><input id="texture" name="texture" type="range" min="0" max="1" step="0.05" value="0.45"></div></fieldset>
+        <fieldset class="switches"><legend class="sr-only">표시 설정</legend><label class="switch-label" for="show-labels"><span><strong>모둠 이름 표시</strong><small>구역 이름으로 한눈에 구분해요.</small></span><input id="show-labels" name="showLabels" type="checkbox" role="switch" checked><i aria-hidden="true"></i></label><label class="switch-label" for="motion"><span><strong>부드러운 그리기</strong><small>위치가 바뀌면 경계도 따라와요.</small></span><input id="motion" name="motion" type="checkbox" role="switch" checked><i aria-hidden="true"></i></label></fieldset>
+      </form>
+      <section class="group-names"><div><h3>구역 이름</h3><span id="groups-badge">0</span></div><div id="group-name-list"></div><p>자료를 더하거나 지워도 이름을 유지해요. 바탕화면에서는 이름 옆 연필로 바로 수정해요.</p></section>
+      <label class="switch-label autostart-row" id="autostart-row" hidden><span><strong>로그인할 때 자동 시작</strong><small>Windows에서만 사용할 수 있어요.</small></span><input id="autostart" type="checkbox" role="switch"><i aria-hidden="true"></i></label>
+      <div class="save-state" id="save-state" role="status"><span class="symbol" aria-hidden="true">check_circle</span><span>변경 사항은 이 기기에 저장돼요.</span></div>
+    </aside>
+  </main>
+  <footer class="app-footer"><p>바탕화면의 자료들이, 익숙한 학교 풍경이 되도록.</p><span>교실데스크 · 0.1.0 <span aria-hidden="true">/</span> 로컬 전용</span></footer>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-heading"><div><span class="section-kicker">처음이라면</span><h2 id="help-title">내 바탕화면에 작은 교실을.</h2></div><button class="icon-button" id="close-help" aria-label="사용 안내 닫기"><span class="symbol" aria-hidden="true">close</span></button></div><ol class="help-steps"><li><b>장면을 골라요</b><p>해변, 초원, 칠판, 운동장, 체육관, 교실 중 하나를 선택하세요. 기존 풍경 2종에 학교 테마 4종을 더했어요.</p></li><li><b>자료를 모아봐요</b><p>미리보기 아이콘을 끌거나, 선택 후 방향키로 옮기면 경계가 자동으로 바뀌어요. Shift와 방향키를 함께 누르면 크게 이동해요.</p></li><li><b>우리 반의 느낌으로</b><p>묶기 거리, 여백, 선 두께와 모둠 이름을 조절해 보세요. 설정은 이 기기에 저장돼요.</p></li></ol><div class="help-windows"><h3>Windows 바탕화면에 적용</h3><p><code>ClassDesk-0.1.0-win-x64-Setup.exe</code>를 실행해 설치한 뒤, 시작 메뉴에서 <strong>교실데스크</strong>를 여세요. Windows 10·11과 .NET Framework 4.8, Edge WebView2가 필요해요. 설치 프로그램이 필수 구성 요소를 확인해요. 종료하면 원래 배경으로 돌아가요.</p><p>설치 없이 쓰려면 포터블 ZIP의 압축을 모두 풀고 <code>host\bin\ClassDesk.exe</code>를 실행하세요.</p><p>브라우저는 예시 아이콘으로만 동작해요. Windows 버전은 실제 아이콘의 <strong>위치만 읽고</strong> 파일을 이동하거나 이름을 수집하지 않아요. 배경 이미지에는 파일명이 포함되지 않아요.</p></div><p class="license-note">이 프로그램은 Deskland의 공개 소스를 바탕으로 만든 독립 파생 버전이며, 원작자의 공식 제품이 아니에요. 소스는 GPL-3.0으로 제공해요.</p></dialog>
+  <noscript><div class="fatal-notice">미리보기를 사용하려면 브라우저에서 자바스크립트를 켜주세요.</div></noscript>
+  <script type="module" src="school-app.mjs"></script>
+</body>
+</html>
